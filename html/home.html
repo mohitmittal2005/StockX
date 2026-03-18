@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StockX – Home</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&display=swap"
+    rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1/dist/chartjs-adapter-luxon.umd.min.js"></script>
+  
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/stock-detail.css">
+  <link rel="stylesheet" href="../css/profile.css">
+  
+</head>
+
+<body>
+
+  <!-- ── API Key Banner ── -->
+  <div id="apiBanner" class="hidden">
+    <span>🔑 Enter your free <b>Finnhub API key</b> for real-time data → <a href="https://finnhub.io/register"
+        target="_blank" style="color:var(--red)">Get free key</a></span>
+    <input id="apiKeyInput" type="text" placeholder="Paste your Finnhub API key here…" />
+    <button id="saveApiBtn" onclick="saveApiKey()">Connect Live Data</button>
+  </div>
+
+  <div class="app">
+    <div class="main-scroll">
+
+      <!-- ── Top Bar ── -->
+      <div class="topbar">
+        <div class="topbar-left">
+          <div class="greeting">Hi there,</div>
+          <div class="username">Welcome to StockX <span id="liveBadge" class="live-badge" style="display:none"><span
+                class="live-dot"></span>LIVE</span></div>
+        </div>
+        <div class="topbar-right">
+          <!-- Paper Trading Button -->
+          <div class="icon-btn pt-btn" id="ptBtn" title="Paper Trading" onclick="setNav(this, 'paperTradingView')">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+            </svg>
+            <span class="pt-badge">PAPER</span>
+          </div>
+          <!-- Bell Button -->
+          <div class="icon-btn" title="Notifications" onclick="setNav(this, 'profileView')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+            <div class="bell-dot"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Search Overlay ── -->
+      <div class="search-overlay" id="searchOverlay" onclick="handleOverlayClick(event)">
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input class="search-input" id="searchInput" type="text" placeholder="Search stocks — AAPL, TSLA, MSFT…"
+            oninput="doSearch(this.value)" />
+          <button class="search-close" onclick="closeSearch()">✕</button>
+        </div>
+        <div class="search-results" id="searchResults">
+          <div class="search-hint">Type a ticker or company name to search</div>
+        </div>
+      </div>
+
+      <!-- ── Market Status ── -->
+      <div class="market-status-bar">
+        <span id="marketStatus">⏳ Checking market…</span>
+        <span id="lastUpdated"></span>
+      </div>
+
+      <!-- ── Views Container ── -->
+      <div id="homeView">
+        <!-- ── Dashboard Desktop Layout ── -->
+        <div class="dashboard-layout">
+
+          <!-- MAIN COLUMN -->
+          <div class="dash-main">
+            <!-- ── Gains Card ── -->
+            <div class="gains-card fade-in">
+              <div class="gains-top">
+                <div>
+                  <div class="gains-label">Portfolio Value</div>
+                  <div class="gains-amount" id="totalValue"><span>$</span><span class="pulse">——,———</span></div>
+                  <div class="gains-change up" id="totalChange">Loading…</div>
+                </div>
+                <div class="gains-period" onclick="cyclePeriod()">
+                  <span id="periodLabel">1W</span>
+                  <svg viewBox="0 0 10 6">
+                    <path d="M1 1l4 4 4-4" stroke="#bbb" stroke-width="1.5" fill="none" stroke-linecap="round" />
+                  </svg>
+                </div>
+              </div>
+              <div class="chart-wrap">
+                <canvas id="gainsChart"></canvas>
+              </div>
+            </div>
+
+            <!-- Period Tabs -->
+            <div class="period-tabs">
+              <button class="period-tab" onclick="setPeriod('1D',this)">1D</button>
+              <button class="period-tab active" onclick="setPeriod('1W',this)">1W</button>
+              <button class="period-tab" onclick="setPeriod('1M',this)">1M</button>
+              <button class="period-tab" onclick="setPeriod('3M',this)">3M</button>
+              <button class="period-tab" onclick="setPeriod('1Y',this)">1Y</button>
+            </div>
+
+            <!-- ── Portfolio ── -->
+            <div class="section-header">
+              <span class="section-title">Portfolio</span>
+              <span class="view-all" onclick="setNav(this, 'homeView')">View all ›</span>
+            </div>
+            <div class="portfolio-scroll" id="portfolioCards">
+              <!-- populated by JS -->
+            </div>
+          </div><!-- /dash-main -->
+
+          <!-- SIDE COLUMN -->
+          <div class="dash-side">
+            <!-- ── API Nudge (shown when no key) ── -->
+            <div class="api-nudge" id="apiNudge" onclick="document.getElementById('apiKeyInput').focus()">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              <div class="api-nudge-text">
+                Showing <b>simulated data</b>. Add your free <b>Finnhub API key</b> above for real-time US stock prices.
+              </div>
+            </div>
+
+            <!-- ── Watchlist ── -->
+            <div class="section-header" style="padding-top:0.4rem;">
+              <span class="section-title">Watchlist</span>
+              <span class="view-all" onclick="openSearch()">›</span>
+            </div>
+            <div class="watchlist" id="watchlist">
+              <!-- populated by JS -->
+            </div>
+          </div><!-- /dash-side -->
+
+        </div><!-- /dashboard-layout -->
+      </div><!-- /homeView -->
+
+      <!-- ══ Stock Detail Modal ══ -->
+      <div class="stock-detail-overlay" id="stockDetailOverlay" onclick="handleDetailOverlayClick(event)">
+        <div class="stock-detail-modal" id="stockDetailModal">
+          <div class="sd-header">
+            <div class="sd-header-left">
+              <div class="sd-emoji" id="sdEmoji">📈</div>
+              <div>
+                <div class="sd-ticker" id="sdTicker">AAPL</div>
+                <div class="sd-name" id="sdName">Apple Inc.</div>
+              </div>
+            </div>
+            <button class="sd-close" onclick="closeStockDetail()">✕</button>
+          </div>
+
+          <div class="sd-price-section">
+            <div class="sd-current-price" id="sdPrice">$189.50</div>
+            <div class="sd-price-change">
+              <span class="sd-price-badge up" id="sdChange">▲ 2.30%</span>
+              <span class="sd-live-indicator"><span class="live-dot"></span>LIVE</span>
+            </div>
+          </div>
+
+          <div class="sd-period-tabs">
+            <button class="sd-period-tab active" onclick="setDetailPeriod('1D',this)">1D</button>
+            <button class="sd-period-tab" onclick="setDetailPeriod('1W',this)">1W</button>
+            <button class="sd-period-tab" onclick="setDetailPeriod('1M',this)">1M</button>
+            <button class="sd-period-tab" onclick="setDetailPeriod('3M',this)">3M</button>
+            <button class="sd-period-tab" onclick="setDetailPeriod('1Y',this)">1Y</button>
+          </div>
+
+          <div class="sd-chart-container">
+            <div class="sd-chart-wrap">
+              <div class="sd-chart-canvas-wrap">
+                <canvas id="stockDetailCandleChart"></canvas>
+                <div class="sd-chart-loading" id="sdChartLoading">
+                  <div class="search-spinner"></div>
+                  Loading chart data…
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sd-stats" id="sdStats">
+            <div class="sd-stat">
+              <div class="sd-stat-label">Open</div>
+              <div class="sd-stat-value" id="sdOpen">—</div>
+            </div>
+            <div class="sd-stat">
+              <div class="sd-stat-label">High</div>
+              <div class="sd-stat-value" id="sdHigh">—</div>
+            </div>
+            <div class="sd-stat">
+              <div class="sd-stat-label">Low</div>
+              <div class="sd-stat-value" id="sdLow">—</div>
+            </div>
+            <div class="sd-stat">
+              <div class="sd-stat-label">Prev Close</div>
+              <div class="sd-stat-value" id="sdPrevClose">—</div>
+            </div>
+          </div>
+
+          <div class="sd-volume-bar">
+            <div class="sd-volume-label">Volume</div>
+            <div class="sd-volume-track">
+              <div class="sd-volume-fill" id="sdVolumeFill" style="width:50%"></div>
+            </div>
+            <div class="sd-volume-value" id="sdVolume">—</div>
+          </div>
+
+          <!-- Buy/Sell Section -->
+          <div class="sd-trade-section">
+            <div class="sd-trade-title">
+              📝 Paper Trade <span class="pt-label">VIRTUAL</span>
+            </div>
+            <div class="sd-trade-balance">
+              Available: <b id="sdWalletBal">$100,000.00</b>
+            </div>
+            <div class="sd-holding-info" id="sdHoldingInfo" style="display:none">
+              <div>
+                <span class="sd-holding-info-label">You own: </span>
+                <span class="sd-holding-info-val" id="sdOwnedQty">0 shares</span>
+              </div>
+              <div>
+                <span class="sd-holding-info-label">Avg: </span>
+                <span class="sd-holding-info-val" id="sdAvgPrice">$0.00</span>
+              </div>
+            </div>
+            <div class="sd-qty-row">
+              <span class="sd-qty-label">Qty</span>
+              <input type="number" class="sd-qty-input" id="sdQtyInput" value="1" min="1" step="1" oninput="updateOrderTotal()" />
+              <div class="sd-qty-presets">
+                <button class="sd-qty-preset" onclick="setQty(1)">1</button>
+                <button class="sd-qty-preset" onclick="setQty(5)">5</button>
+                <button class="sd-qty-preset" onclick="setQty(10)">10</button>
+                <button class="sd-qty-preset" onclick="setQty(25)">25</button>
+              </div>
+            </div>
+            <div class="sd-order-total" id="sdOrderTotal">Total: <b>$189.50</b></div>
+            <div class="sd-trade-btns">
+              <button class="sd-buy-btn" id="sdBuyBtn" onclick="executeTrade('buy')">▲ BUY</button>
+              <button class="sd-sell-btn" id="sdSellBtn" onclick="executeTrade('sell')">▼ SELL</button>
+            </div>
+            <div class="sd-trade-msg" id="sdTradeMsg"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── History View ── -->
+      <div id="historyView" style="display:none; padding-top:1rem;">
+        <div class="section-header">
+          <span class="section-title" style="font-size: 1.6rem;">Search History</span>
+          <span class="view-all" onclick="clearHistory()">Clear All</span>
+        </div>
+        <div class="watchlist" id="historyList" style="max-width: 800px; margin-top: 1rem;">
+          <!-- populated by JS -->
+        </div>
+      </div><!-- /historyView -->
+
+      <!-- ══ Paper Trading View ══ -->
+      <div id="paperTradingView" style="display:none; padding-top:1rem;">
+        <div class="pt-view">
+          <div class="section-header" style="padding-inline:0">
+            <span class="section-title" style="font-size:1.6rem;">📝 Paper Trading</span>
+            <span class="view-all" onclick="resetPaperTrading()" style="color:var(--muted)">Reset Account</span>
+          </div>
+
+          <!-- Wallet Card -->
+          <div class="pt-wallet-card" id="ptWalletCard">
+            <div class="pt-wallet-label">Total Portfolio Value</div>
+            <div class="pt-wallet-balance" id="ptTotalValue">$100,000.00</div>
+            <div class="pt-wallet-row">
+              <div class="pt-wallet-stat">
+                <div class="pt-wallet-stat-label">Cash Balance</div>
+                <div class="pt-wallet-stat-val" id="ptCashBal">$100,000.00</div>
+              </div>
+              <div class="pt-wallet-stat">
+                <div class="pt-wallet-stat-label">Invested</div>
+                <div class="pt-wallet-stat-val" id="ptInvested">$0.00</div>
+              </div>
+              <div class="pt-wallet-stat">
+                <div class="pt-wallet-stat-label">Total P&L</div>
+                <div class="pt-wallet-stat-val" id="ptTotalPnl">$0.00</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tabs -->
+          <div class="pt-tabs">
+            <button class="pt-tab-btn active" onclick="setPtTab('holdings', this)">Holdings</button>
+            <button class="pt-tab-btn" onclick="setPtTab('trades', this)">Trade Log</button>
+          </div>
+
+          <!-- Holdings Tab -->
+          <div id="ptHoldingsTab">
+            <div id="ptHoldingsList"></div>
+          </div>
+
+          <!-- Trades Tab -->
+          <div id="ptTradesTab" style="display:none">
+            <div id="ptTradesList"></div>
+          </div>
+        </div>
+      </div><!-- /paperTradingView -->
+
+      <!-- ══ Profile View ══ -->
+      <div id="profileView" style="display:none; padding-top:1rem;">
+        <div class="pf-view">
+
+          <!-- Profile Header -->
+          <div class="pf-header-card">
+            <div class="pf-avatar-wrap">
+              <div class="pf-avatar" id="pfAvatar" onclick="document.getElementById('pfAvatarInput').click()">
+                <span id="pfAvatarText">👤</span>
+              </div>
+              <div class="pf-avatar-edit" onclick="document.getElementById('pfAvatarInput').click()">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 20h9"/>
+                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                </svg>
+              </div>
+              <input type="file" id="pfAvatarInput" accept="image/*" style="display:none" onchange="handleAvatarUpload(event)" />
+            </div>
+            <div class="pf-username" id="pfUsername">StockX User</div>
+            <div class="pf-email" id="pfEmail">user@stockx.com</div>
+            <div class="pf-member-badge">⭐ PRO MEMBER</div>
+
+            <button class="pf-edit-btn" onclick="toggleProfileEdit()" id="pfEditToggle">✏️ Edit Profile</button>
+
+            <div class="pf-edit-form" id="pfEditForm">
+              <div class="pf-edit-row">
+                <div class="pf-edit-label">Full Name</div>
+                <input class="pf-edit-input" id="pfNameInput" placeholder="Your name" />
+              </div>
+              <div class="pf-edit-row">
+                <div class="pf-edit-label">Email</div>
+                <input class="pf-edit-input" id="pfEmailInput" type="email" placeholder="your@email.com" />
+              </div>
+              <button class="pf-save-btn" onclick="saveProfile()">Save Changes</button>
+            </div>
+          </div>
+
+          <!-- Settings -->
+          <div class="pf-section-label">Settings</div>
+          <div class="pf-menu">
+            <div class="pf-menu-item" onclick="toggleDarkMode()">
+              <div class="pf-menu-icon" style="background:rgba(255,200,0,0.1)">🌙</div>
+              <div class="pf-menu-text">
+                <div class="pf-menu-title">Dark Mode</div>
+                <div class="pf-menu-desc">Toggle light/dark theme</div>
+              </div>
+              <div class="pf-menu-toggle on" id="pfDarkToggle"></div>
+            </div>
+            <div class="pf-menu-item" onclick="toggleNotifications()">
+              <div class="pf-menu-icon" style="background:rgba(34,197,94,0.1)">🔔</div>
+              <div class="pf-menu-text">
+                <div class="pf-menu-title">Notifications</div>
+                <div class="pf-menu-desc">Price alerts & trade updates</div>
+              </div>
+              <div class="pf-menu-toggle on" id="pfNotifToggle"></div>
+            </div>
+            <div class="pf-menu-item" onclick="document.getElementById('apiBanner').classList.toggle('hidden')">
+              <div class="pf-menu-icon" style="background:rgba(99,102,241,0.1)">🔑</div>
+              <div class="pf-menu-text">
+                <div class="pf-menu-title">API Key</div>
+                <div class="pf-menu-desc">Manage your Finnhub API key</div>
+              </div>
+              <span class="pf-menu-arrow">›</span>
+            </div>
+          </div>
+
+          <!-- Support -->
+          <div class="pf-section-label">Support</div>
+          <div class="pf-menu">
+            <div class="pf-menu-item" onclick="openPfModal('contact')">
+              <div class="pf-menu-icon" style="background:rgba(59,130,246,0.1)">📧</div>
+              <div class="pf-menu-text">
+                <div class="pf-menu-title">Contact Us</div>
+                <div class="pf-menu-desc">Get help & support</div>
+              </div>
+              <span class="pf-menu-arrow">›</span>
+            </div>
+            <div class="pf-menu-item" onclick="openPfModal('terms')">
+              <div class="pf-menu-icon" style="background:rgba(168,85,247,0.1)">📄</div>
+              <div class="pf-menu-text">
+                <div class="pf-menu-title">Terms & Conditions</div>
+                <div class="pf-menu-desc">Legal agreements & policies</div>
+              </div>
+              <span class="pf-menu-arrow">›</span>
+            </div>
+            <div class="pf-menu-item" onclick="openPfModal('privacy')">
+              <div class="pf-menu-icon" style="background:rgba(236,72,153,0.1)">🔒</div>
+              <div class="pf-menu-text">
+                <div class="pf-menu-title">Privacy Policy</div>
+                <div class="pf-menu-desc">How we handle your data</div>
+              </div>
+              <span class="pf-menu-arrow">›</span>
+            </div>
+          </div>
+
+          <!-- Upcoming Features -->
+          <div class="pf-section-label">Upcoming Features</div>
+          <div class="pf-features">
+            <div class="pf-feature">
+              <div class="pf-feature-icon">🤖</div>
+              <div class="pf-feature-name">AI Advisor</div>
+              <div class="pf-feature-status">Coming Soon</div>
+            </div>
+            <div class="pf-feature">
+              <div class="pf-feature-icon">📱</div>
+              <div class="pf-feature-name">Mobile App</div>
+              <div class="pf-feature-status">In Development</div>
+            </div>
+            <div class="pf-feature">
+              <div class="pf-feature-icon">🌐</div>
+              <div class="pf-feature-name">Global Markets</div>
+              <div class="pf-feature-status">Q3 2026</div>
+            </div>
+            <div class="pf-feature">
+              <div class="pf-feature-icon">📊</div>
+              <div class="pf-feature-name">Options Trading</div>
+              <div class="pf-feature-status">Coming Soon</div>
+            </div>
+            <div class="pf-feature">
+              <div class="pf-feature-icon">⚡</div>
+              <div class="pf-feature-name">Auto Trading</div>
+              <div class="pf-feature-status">Planned</div>
+            </div>
+            <div class="pf-feature">
+              <div class="pf-feature-icon">🏆</div>
+              <div class="pf-feature-name">Leaderboard</div>
+              <div class="pf-feature-status">Planned</div>
+            </div>
+          </div>
+
+          <!-- Logout -->
+          <button class="pf-logout-btn" onclick="logoutUser()">
+            🚶 Logout
+          </button>
+
+          <div class="pf-version">StockX v2.0 · Made with ❤️</div>
+        </div>
+      </div><!-- /profileView -->
+
+      <!-- Profile Modals -->
+      <div class="pf-modal-overlay" id="pfModalOverlay" onclick="if(event.target===this)closePfModal()">
+        <div class="pf-modal" id="pfModalContent"></div>
+      </div>
+
+      <div style="height:2rem"></div>
+    </div><!-- /main-scroll -->
+  </div><!-- /app -->
+
+  <!-- ── Bottom Nav ── -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" onclick="setNav(this, 'homeView')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+        <polyline points="9 22 9 12 15 12 15 22" />
+      </svg>
+      <span>Home</span>
+    </div>
+    <div class="nav-item" onclick="setNav(this, 'paperTradingView')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+      </svg>
+      <span>Trade</span>
+    </div>
+    <div class="nav-center-btn" onclick="openSearch()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+        stroke-linejoin="round">
+        <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
+        <polyline points="16 7 22 7 22 13" />
+      </svg>
+    </div>
+    <div class="nav-item" onclick="setNav(this, 'historyView')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+        <line x1="16" y1="2" x2="16" y2="6" />
+        <line x1="8" y1="2" x2="8" y2="6" />
+        <line x1="3" y1="10" x2="21" y2="10" />
+      </svg>
+      <span>History</span>
+    </div>
+    <div class="nav-item" onclick="setNav(this, 'profileView')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+        <circle cx="12" cy="7" r="4" />
+      </svg>
+      <span>Profile</span>
+    </div>
+  </nav>
+
+  
+  <script src="../js/config.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/search.js"></script>
+  <script src="../js/stock-detail.js"></script>
+  <script src="../js/paper-trading.js"></script>
+  <script src="../js/profile.js"></script>
+  <script src="../js/app.js"></script>
+  
+</body>
+
+</html>
