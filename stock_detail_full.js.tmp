@@ -1,5 +1,5 @@
-//  STOCK DETAIL VIEW — Candlestick Chart
-    // ══════════════════════════════════════════
+﻿//  STOCK DETAIL VIEW ΓÇö Candlestick Chart
+    // ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 
     let detailChart = null;
     let detailSymbol = null;
@@ -87,7 +87,7 @@
 
       const isUp = d.change >= 0;
       changeEl.className = 'sd-price-badge ' + (isUp ? 'up' : 'dn');
-      changeEl.innerHTML = `${isUp ? '▲' : '▼'} $${Math.abs(d.price - (d.prevClose || d.price)).toFixed(2)} (${Math.abs(d.change).toFixed(2)}%)`;
+      changeEl.innerHTML = `${isUp ? 'Γû▓' : 'Γû╝'} $${Math.abs(d.price - (d.prevClose || d.price)).toFixed(2)} (${Math.abs(d.change).toFixed(2)}%)`;
 
       updateDetailStats();
     }
@@ -97,10 +97,10 @@
       const d = liveData[detailSymbol];
       if (!d) return;
 
-      document.getElementById('sdOpen').textContent = d.open ? '$' + d.open.toFixed(2) : '—';
-      document.getElementById('sdHigh').textContent = d.high ? '$' + d.high.toFixed(2) : '—';
-      document.getElementById('sdLow').textContent = d.low ? '$' + d.low.toFixed(2) : '—';
-      document.getElementById('sdPrevClose').textContent = d.prevClose ? '$' + d.prevClose.toFixed(2) : '—';
+      document.getElementById('sdOpen').textContent = d.open ? '$' + d.open.toFixed(2) : 'ΓÇö';
+      document.getElementById('sdHigh').textContent = d.high ? '$' + d.high.toFixed(2) : 'ΓÇö';
+      document.getElementById('sdLow').textContent = d.low ? '$' + d.low.toFixed(2) : 'ΓÇö';
+      document.getElementById('sdPrevClose').textContent = d.prevClose ? '$' + d.prevClose.toFixed(2) : 'ΓÇö';
     }
 
     async function setDetailPeriod(period, btn) {
@@ -148,13 +148,13 @@
           candleData = generateSimCandles(symbol, period);
           renderCandlestickChart(candleData, symbol);
           document.getElementById('sdVolumeFill').style.width = '40%';
-          document.getElementById('sdVolume').textContent = '—';
+          document.getElementById('sdVolume').textContent = 'ΓÇö';
         }
       } catch (e) {
         candleData = generateSimCandles(symbol, period);
         renderCandlestickChart(candleData, symbol);
         document.getElementById('sdVolumeFill').style.width = '40%';
-        document.getElementById('sdVolume').textContent = '—';
+        document.getElementById('sdVolume').textContent = 'ΓÇö';
       }
 
       loadingEl.style.display = 'none';
@@ -405,4 +405,4 @@ if (!padding) {
   return String(vol);
 }
 
-    // ══════════════════════════════════════════
+    // ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ

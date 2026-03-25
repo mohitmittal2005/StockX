@@ -1,0 +1,14 @@
+@import './styles/base.css';
+@import './styles/profile.css';
+@import './styles/stock-detail.css';
+
+/* Additional global overrides */
+:root {
+  --red: #e8001d;
+  --red-dark: #a80016;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
