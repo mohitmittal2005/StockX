@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { motion } from 'framer-motion';
 
 const MiniChart = ({ symbol, isUp, width = 60, height = 30 }) => {
   const points = useMemo(() => {
@@ -29,12 +30,16 @@ const MiniChart = ({ symbol, isUp, width = 60, height = 30 }) => {
 
   return (
     <svg width={width} height={height} className="port-mini-chart">
-      <polyline
+      <motion.polyline
         fill="none"
         stroke={color}
         strokeWidth="2"
-        strokeJoin="round"
+        strokeLinejoin="round"
+        strokeLinecap="round"
         points={points}
+        initial={{ pathLength: 0, opacity: 0 }}
+        animate={{ pathLength: 1, opacity: 1 }}
+        transition={{ duration: 1.2, ease: "easeInOut", delay: 0.2 }}
       />
     </svg>
   );

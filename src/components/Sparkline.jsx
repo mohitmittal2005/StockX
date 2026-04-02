@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { motion } from 'framer-motion';
 
 const Sparkline = ({ symbol, isUp, width = 70, height = 38 }) => {
   const points = useMemo(() => {
@@ -39,13 +40,23 @@ const Sparkline = ({ symbol, isUp, width = 70, height = 38 }) => {
           <stop offset="100%" stopColor={color} stopOpacity="0" />
         </linearGradient>
       </defs>
-      <polygon fill={`url(#grad-${symbol})`} points={points.fillPath} />
-      <polyline
+      <motion.polygon 
+        fill={`url(#grad-${symbol})`} 
+        points={points.fillPath}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.6, duration: 1 }}
+      />
+      <motion.polyline
         fill="none"
         stroke={color}
         strokeWidth="1.8"
-        strokeJoin="round"
+        strokeLinejoin="round"
+        strokeLinecap="round"
         points={points.linePath}
+        initial={{ pathLength: 0, opacity: 0 }}
+        animate={{ pathLength: 1, opacity: 1 }}
+        transition={{ duration: 1.5, ease: "easeOut", delay: 0.3 }}
       />
     </svg>
   );

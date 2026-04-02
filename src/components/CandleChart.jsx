@@ -26,12 +26,10 @@ const CandleChart = ({ data, period }) => {
       c: data.c[i]
     }));
 
-    // Find min/max for y-axis
     let minPrice = Math.min(...data.l);
     let maxPrice = Math.max(...data.h);
     let padding = (maxPrice - minPrice) * 0.1 || 1;
 
-    // Custom candlestick plugin
     const candlestickPlugin = {
       id: 'candlestick',
       afterDatasetsDraw(chart) {

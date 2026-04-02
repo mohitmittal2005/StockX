@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import '../styles/Login.css';
 
 const Login = ({ onLogin }) => {
@@ -66,16 +67,59 @@ const Login = ({ onLogin }) => {
 
       {/* Login Card */}
       <main className="page">
-        <div className="card">
-          <div className="logo">
-            <div className="logo-icon">S</div>
-            <span className="logo-text">StockX</span>
-          </div>
+        <motion.div 
+          className="card"
+          initial={{ opacity: 0, y: 50, scale: 0.92 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          style={{ animation: 'none' }}
+        >
+          <motion.div 
+            className="logo"
+            initial={{ opacity: 0, y: -15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+          >
+            <motion.div 
+              className="logo-icon"
+              initial={{ opacity: 0, scale: 0, rotate: -45 }}
+              animate={{ opacity: 1, scale: 1, rotate: 0 }}
+              transition={{ delay: 0.4, type: 'spring', stiffness: 300, damping: 15 }}
+              whileHover={{ rotate: [0, -10, 10, 0], transition: { duration: 0.4 } }}
+            >
+              S
+            </motion.div>
+            <motion.span 
+              className="logo-text"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.5, duration: 0.4 }}
+            >
+              StockX
+            </motion.span>
+          </motion.div>
 
-          <p className="tagline">Trade Smarter. Live Bolder.</p>
+          <motion.p 
+            className="tagline"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.55, duration: 0.4 }}
+          >
+            Trade Smarter. Live Bolder.
+          </motion.p>
 
-          <form onSubmit={handleSubmit}>
-            <div className="form-group">
+          <motion.form 
+            onSubmit={handleSubmit}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6, duration: 0.4 }}
+          >
+            <motion.div 
+              className="form-group"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.65, duration: 0.4 }}
+            >
               <label>Email / Username</label>
               <input 
                 type="text" 
@@ -84,8 +128,13 @@ const Login = ({ onLogin }) => {
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="off" 
               />
-            </div>
-            <div className="form-group">
+            </motion.div>
+            <motion.div 
+              className="form-group"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.75, duration: 0.4 }}
+            >
               <label>Password</label>
               <input 
                 type="password" 
@@ -93,26 +142,67 @@ const Login = ({ onLogin }) => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
-            </div>
+            </motion.div>
 
-            <button type="submit" className="btn-primary" disabled={isLoading} style={{marginTop:'0.6rem'}}>
-              {isLoading ? 'Signing in…' : 'Sign In'}
-            </button>
-          </form>
+            <motion.button 
+              type="submit" 
+              className="btn-primary" 
+              disabled={isLoading} 
+              style={{marginTop:'0.6rem'}}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.85, duration: 0.4 }}
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              {isLoading ? (
+                <motion.span
+                  animate={{ opacity: [1, 0.5, 1] }}
+                  transition={{ duration: 1, repeat: Infinity }}
+                >
+                  Signing in…
+                </motion.span>
+              ) : (
+                'Sign In'
+              )}
+            </motion.button>
+          </motion.form>
 
-          <div className="divider">or</div>
+          <motion.div 
+            className="divider"
+            initial={{ opacity: 0, scaleX: 0 }}
+            animate={{ opacity: 1, scaleX: 1 }}
+            transition={{ delay: 0.9, duration: 0.4 }}
+          >
+            or
+          </motion.div>
 
-          <button className="btn-skip" onClick={onLogin}>
+          <motion.button 
+            className="btn-skip" 
+            onClick={onLogin}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.95, duration: 0.4 }}
+            whileHover={{ scale: 1.02, borderColor: 'var(--red)', color: 'var(--red)' }}
+            whileTap={{ scale: 0.98 }}
+          >
             Skip for now
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <motion.svg 
+              width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+            >
               <polyline points="9 18 15 12 9 6"/>
-            </svg>
-          </button>
+            </motion.svg>
+          </motion.button>
 
-          <p className="footer-hint">
+          <motion.p 
+            className="footer-hint"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.0, duration: 0.4 }}
+          >
             Don't have an account? <a href="#">Create one free</a>
-          </p>
-        </div>
+          </motion.p>
+        </motion.div>
       </main>
     </div>
   );

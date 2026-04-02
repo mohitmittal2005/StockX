@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useStock } from '../StockContext';
 import { STOCK_DB } from '../config';
 
@@ -17,6 +18,17 @@ import ApiBanner from './ApiBanner';
 import '../styles/base.css';
 import '../styles/profile.css';
 import '../styles/stock-detail.css';
+
+const pageVariants = {
+  initial: { opacity: 0, y: 24, filter: 'blur(4px)' },
+  animate: { opacity: 1, y: 0, filter: 'blur(0px)' },
+  exit: { opacity: 0, y: -16, filter: 'blur(4px)' },
+};
+
+const pageTransition = {
+  duration: 0.4,
+  ease: [0.22, 1, 0.36, 1],
+};
 
 const Home = ({ onLogout }) => {
   const [nav, setNav] = useState('homeView');
@@ -70,11 +82,33 @@ const Home = ({ onLogout }) => {
           onSave={saveKey} 
         />
         <Topbar onNav={handleNav} />
-        <div className="market-status-bar" style={{marginTop: '-1rem', marginBottom: '0.5rem'}}>
-          <span id="marketStatus">● {marketStatus}</span>
-          <span id="lastUpdated" style={{marginLeft: '10px'}}>Updated {lastUpdated}</span>
-        </div>
-        {renderView()}
+        <motion.div 
+          className="market-status-bar" 
+          style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0 1.2rem', marginTop: '-0.5rem', marginBottom: '1.2rem'}}
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+        >
+          <div className="status-pill highlight">
+            <span className="pulse-dot"></span>
+            {marketStatus || 'Monitoring Exchanges'}
+          </div>
+          <div className="status-pill dimmed">
+            <span>⏱</span> Updated {lastUpdated || 'Just now'}
+          </div>
+        </motion.div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={nav}
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={pageTransition}
+          >
+            {renderView()}
+          </motion.div>
+        </AnimatePresence>
         <div style={{ height: '5rem' }}></div>
       </div>
       <BottomNav activeNav={nav} onNav={handleNav} onOpenSearch={openSearch} />
