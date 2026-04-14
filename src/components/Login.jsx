@@ -6,14 +6,19 @@ const Login = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(() => {
-      onLogin();
+    setError('');
+    try {
+      await onLogin(email, password);
+    } catch (err) {
+      setError(err.message || 'Login failed');
+    } finally {
       setIsLoading(false);
-    }, 900);
+    }
   };
 
   return (
@@ -166,6 +171,7 @@ const Login = ({ onLogin }) => {
                 'Sign In'
               )}
             </motion.button>
+            {error && <p style={{ color: '#ff6b6b', fontSize: '0.85rem', marginTop: '0.7rem' }}>{error}</p>}
           </motion.form>
 
           <motion.div 
@@ -179,7 +185,7 @@ const Login = ({ onLogin }) => {
 
           <motion.button 
             className="btn-skip" 
-            onClick={onLogin}
+            onClick={() => onLogin('guest@stockx.app', 'guest123')}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.95, duration: 0.4 }}

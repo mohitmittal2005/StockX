@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useStock } from '../StockContext';
-import { STOCK_DB } from '../config';
+import { api } from '../api';
 
 // Components
 import Topbar from './Topbar';
@@ -34,6 +34,7 @@ const Home = ({ onLogout }) => {
   const [nav, setNav] = useState('homeView');
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
   const [selectedStock, setSelectedStock] = useState(null);
   const [isApiBannerHidden, setIsApiBannerHidden] = useState(true);
 
@@ -43,13 +44,17 @@ const Home = ({ onLogout }) => {
   const openSearch = () => setShowSearch(true);
   const closeSearch = () => setShowSearch(false);
 
-  const searchResults = useMemo(() => {
-    if (!searchQuery) return [];
-    const query = searchQuery.toUpperCase();
-    return STOCK_DB.filter(s => 
-      s.symbol.includes(query) || 
-      s.name.toUpperCase().includes(query)
-    );
+  useEffect(() => {
+    if (!searchQuery) {
+      setSearchResults([]);
+      return;
+    }
+    const timer = setTimeout(() => {
+      api.getStocks(searchQuery)
+        .then((data) => setSearchResults(data.items || []))
+        .catch(() => setSearchResults([]));
+    }, 200);
+    return () => clearTimeout(timer);
   }, [searchQuery]);
 
   const handleStockClick = (symbol) => {

@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStock } from '../StockContext';
-import { getSimPrice, API_KEY_DEFAULT } from '../config';
+import { getSimPrice } from '../config';
+import { api } from '../api';
 import CandleChart from './CandleChart';
 import { Star } from 'lucide-react';
 
@@ -82,20 +83,8 @@ const StockDetailModal = ({ symbol, onClose }) => {
   useEffect(() => {
     const fetchCandles = async () => {
       setIsLoading(true);
-      const token = apiKey || API_KEY_DEFAULT;
-      const now = Math.floor(Date.now() / 1000);
-      let res, from;
-      switch (period) {
-        case '1D':  res = '5'; from = now - 86400; break;
-        case '1W':  res = '15'; from = now - 7 * 86400; break;
-        case '1M':  res = '60'; from = now - 30 * 86400; break;
-        case '3M':  res = 'D'; from = now - 90 * 86400; break;
-        case '1Y':  res = 'W'; from = now - 365 * 86400; break;
-        default: res = '5'; from = now - 86400; break;
-      }
       try {
-        const resp = await fetch(`https://finnhub.io/api/v1/stock/candle?symbol=${symbol}&resolution=${res}&from=${from}&to=${now}&token=${token}`);
-        const data = await resp.json();
+        const data = await api.getCandles(symbol, period, apiKey);
         if (data.s === 'ok' && data.c && data.c.length > 0) setCandleData(data);
         else setCandleData(getStableCandles(symbol, period, stockInfo.price || getSimPrice(symbol)));
       } catch (e) {
@@ -106,16 +95,16 @@ const StockDetailModal = ({ symbol, onClose }) => {
     fetchCandles();
   }, [symbol, period, apiKey]);
 
-  const handleBuy = () => {
+  const handleBuy = async () => {
     if (!canBuy) return;
-    const success = buyStock(symbol, qty, currentPrice);
+    const success = await buyStock(symbol, qty, currentPrice);
     setTradeMsg(success ? `Bought ${qty} shares!` : 'Insufficient balance!');
     setTimeout(() => setTradeMsg(''), 2500);
   };
 
-  const handleSell = () => {
+  const handleSell = async () => {
     if (!canSell) return;
-    const success = sellStock(symbol, qty, currentPrice);
+    const success = await sellStock(symbol, qty, currentPrice);
     setTradeMsg(success ? `Sold ${qty} shares!` : 'Insufficient shares!');
     setTimeout(() => setTradeMsg(''), 2500);
   };

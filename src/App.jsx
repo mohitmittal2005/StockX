@@ -3,10 +3,24 @@ import { AnimatePresence, motion } from 'framer-motion';
 import Login from './components/Login';
 import Home from './components/Home';
 import { StockProvider } from './StockContext';
+import { api } from './api';
 import './styles/base.css';
 
 const App = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('stockx_token'));
+
+  const handleLogin = async (email, password) => {
+    const safeEmail = email?.trim() || 'guest@stockx.app';
+    const safePassword = password?.trim() || 'guest123';
+    const result = await api.login(safeEmail, safePassword);
+    localStorage.setItem('stockx_token', result.token);
+    setIsLoggedIn(true);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('stockx_token');
+    setIsLoggedIn(false);
+  };
 
   return (
     <StockProvider>
@@ -21,7 +35,7 @@ const App = () => {
               transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
               style={{ width: '100%', minHeight: '100vh' }}
             >
-              <Home onLogout={() => setIsLoggedIn(false)} />
+              <Home onLogout={handleLogout} />
             </motion.div>
           ) : (
             <motion.div
@@ -32,7 +46,7 @@ const App = () => {
               transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
               style={{ width: '100%', minHeight: '100vh' }}
             >
-              <Login onLogin={() => setIsLoggedIn(true)} />
+              <Login onLogin={handleLogin} />
             </motion.div>
           )}
         </AnimatePresence>
